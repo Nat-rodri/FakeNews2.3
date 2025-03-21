@@ -1,0 +1,166 @@
+--- -----------------------------------------------------
+-- Schema tpfinal_2024
+-- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `tpfinal_2024` ;
+
+-- -----------------------------------------------------
+-- Schema tpfinal_2024
+-- -----------------------------------------------------
+CREATE SCHEMA  `tpfinal_2024` ;
+USE  `tpfinal_2024` ;
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`categorias`
+-- -----------------------------------------------------
+CREATE TABLE  `tpfinal_2024`.`categorias` (
+  `idCategoria` INT NOT NULL AUTO_INCREMENT,
+  `nombreCategoria` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idCategoria`),
+  UNIQUE INDEX `nombreCategoria_UNIQUE` (`nombreCategoria` ASC) VISIBLE);
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`medioorigen`
+-- -----------------------------------------------------
+CREATE TABLE `tpfinal_2024`.`medioorigen` (
+  `idMedioOrigen` INT NOT NULL AUTO_INCREMENT,
+  `NombreMedioOrigen` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idMedioOrigen`),
+  UNIQUE INDEX `Nombre_UNIQUE` (`NombreMedioOrigen` ASC) VISIBLE);
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`fakenews`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tpfinal_2024`.`fakenews` (
+  `idFakenews` INT NOT NULL AUTO_INCREMENT,
+  `titulo` VARCHAR(45) NOT NULL,
+  `descripcion` VARCHAR(45) NULL DEFAULT NULL,
+  `creador` VARCHAR(45) NOT NULL,
+  `fechaAparicion` DATE NOT NULL,
+  `idCategoria` INT NOT NULL,
+  `idMedioOrigen` INT NOT NULL,
+  PRIMARY KEY (`idFakenews`),
+  UNIQUE INDEX `Titulo_UNIQUE` (`titulo` ASC) VISIBLE,
+  INDEX `FNs_Categ_idx` (`idCategoria` ASC) VISIBLE,
+  INDEX `FNs_Medio_idx` (`idMedioOrigen` ASC) VISIBLE,
+  CONSTRAINT `FNs_Categ`
+    FOREIGN KEY (`idCategoria`)
+    REFERENCES `tpfinal_2024`.`categorias` (`idCategoria`),
+  CONSTRAINT `FNs_Medio`
+    FOREIGN KEY (`idMedioOrigen`)
+    REFERENCES `tpfinal_2024`.`medioorigen` (`idMedioOrigen`));
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`medios`
+-- -----------------------------------------------------
+CREATE TABLE  `tpfinal_2024`.`medios` (
+  `idMedio` INT NOT NULL AUTO_INCREMENT,
+  `nombreMedio` VARCHAR(45) NOT NULL,
+  `tipoMedio` ENUM('Audiovisual', 'Escrito', 'Red Social') NOT NULL,
+  `usuarioPeriodista` VARCHAR(255) NOT NULL,
+  `fechaDivulgacion` DATE NOT NULL,
+  `seRetracto` BIT(1) NOT NULL DEFAULT b'1',
+  PRIMARY KEY (`idMedio`),
+  UNIQUE INDEX `nombreMedio_UNIQUE` (`nombreMedio` ASC) VISIBLE);
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`fakenewsmedios`
+-- -----------------------------------------------------
+CREATE TABLE `tpfinal_2024`.`fakenewsmedios` (
+  `idFM` INT NOT NULL,
+  `idFakenews` INT NOT NULL,
+  `idMedio` INT NOT NULL,
+  PRIMARY KEY (`idFM`),
+  INDEX `FKs_idx` (`idFakenews` ASC) VISIBLE,
+  INDEX `Med_idx` (`idMedio` ASC) VISIBLE,
+  CONSTRAINT `FKs`
+    FOREIGN KEY (`idFakenews`)
+    REFERENCES `tpfinal_2024`.`fakenews` (`idFakenews`),
+  CONSTRAINT `Med`
+    FOREIGN KEY (`idMedio`)
+    REFERENCES `tpfinal_2024`.`medios` (`idMedio`));
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`mediosaudiovisuales`
+-- -----------------------------------------------------
+CREATE TABLE  `tpfinal_2024`.`mediosaudiovisuales` (
+  `idMedio` INT NOT NULL,
+  `nombrePrograma` VARCHAR(45) NOT NULL,
+  `minutosDedicados` INT NOT NULL,
+  `rating` DECIMAL(5,2) NOT NULL,
+  PRIMARY KEY (`idMedio`),
+  CONSTRAINT `medioaudiovisual_ibfk_1`
+    FOREIGN KEY (`idMedio`)
+    REFERENCES `tpfinal_2024`.`medios` (`idMedio`));
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`mediosescritos`
+-- -----------------------------------------------------
+CREATE TABLE `tpfinal_2024`.`mediosescritos` (
+  `idMedio` INT NOT NULL,
+  `nombreDiario` VARCHAR(45) NOT NULL,
+  `nombreNota` VARCHAR(45) NOT NULL,
+  `visualizaciones` INT NOT NULL,
+  PRIMARY KEY (`idMedio`),
+  CONSTRAINT `medioescrito_ibfk_1`
+    FOREIGN KEY (`idMedio`)
+    REFERENCES `tpfinal_2024`.`medios` (`idMedio`));
+
+-- ----------------------------------------------------
+-- Table `tpfinal_2024`.`redesociales`
+-- -----------------------------------------------------
+CREATE TABLE  `tpfinal_2024`.`redesociales` (
+  `idMedio` INT NOT NULL,
+  `plataforma` VARCHAR(45) NOT NULL,
+  `usuario` VARCHAR(45) NOT NULL,
+  `interacciones` INT NOT NULL,
+  PRIMARY KEY (`idMedio`),
+  CONSTRAINT `redsocial_ibfk_1`
+    FOREIGN KEY (`idMedio`)
+    REFERENCES `tpfinal_2024`.`medios` (`idMedio`));
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`refutadores`
+-- -----------------------------------------------------
+CREATE TABLE `tpfinal_2024`.`refutadores` (
+  `idRefutador` INT NOT NULL AUTO_INCREMENT,
+  `nombre` VARCHAR(50) NOT NULL,
+  `apellido` VARCHAR(45) NOT NULL,
+  `medio` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`idRefutador`),
+  UNIQUE INDEX `nombre_UNIQUE` (`nombre` ASC) VISIBLE);
+
+-- -----------------------------------------------------
+-- Table `tpfinal_2024`.`refutaciones`
+-- -----------------------------------------------------
+CREATE TABLE  `tpfinal_2024`.`refutaciones` (
+  `idRefutacion` INT NOT NULL AUTO_INCREMENT,
+  `fechaRefutada` DATE NOT NULL,
+  `fuenteEvidencia` VARCHAR(255) NOT NULL,
+  `provOrgOficial` BIT(1) NOT NULL DEFAULT b'1',
+  `idRefutador` INT NOT NULL,
+  `idFakenews` INT NOT NULL,
+  PRIMARY KEY (`idRefutacion`),
+  UNIQUE INDEX `idFakenews_UNIQUE` (`idFakenews` ASC) VISIBLE,
+  INDEX `Refutador_Refutacion_idx` (`idRefutador` ASC) VISIBLE,
+  INDEX `Fns_Refutacion_idx` (`idFakenews` ASC) VISIBLE,
+  CONSTRAINT `Fns_Refutacion`
+    FOREIGN KEY (`idFakenews`)
+    REFERENCES `tpfinal_2024`.`fakenews` (`idFakenews`),
+  CONSTRAINT `Refutador_Refutacion`
+    FOREIGN KEY (`idRefutador`)
+    REFERENCES `tpfinal_2024`.`refutadores` (`idRefutador`));
+
+
+INSERT INTO `tpfinal_2024`.`refutadores` (`idRefutador`, `nombre`, `apellido`, `medio`) VALUES ('1', 'Natali', 'Rodriguez', 'Instagram');
+
+
+INSERT INTO `tpfinal_2024`.`categorias` (`idCategoria`, `nombreCategoria`) VALUES ('1', 'Sátira o parodia');
+INSERT INTO `tpfinal_2024`.`categorias` (`idCategoria`, `nombreCategoria`) VALUES ('2', 'Conexión falsa');
+INSERT INTO `tpfinal_2024`.`categorias` (`idCategoria`, `nombreCategoria`) VALUES ('3', 'Contenido engañoso');
+INSERT INTO `tpfinal_2024`.`categorias` (`idCategoria`, `nombreCategoria`) VALUES ('4', 'Contexto falso');
+INSERT INTO `tpfinal_2024`.`categorias` (`idCategoria`, `nombreCategoria`) VALUES ('5', 'Contenido impostor');
+INSERT INTO `tpfinal_2024`.`categorias` (`idCategoria`, `nombreCategoria`) VALUES ('6', 'Contenido manipulado');
+INSERT INTO `tpfinal_2024`.`categorias` (`idCategoria`, `nombreCategoria`) VALUES ('7', 'Contenido inventado');
+
+INSERT INTO `tpfinal_2024`.`medioorigen` (`idMedioOrigen`, `NombreMedioOrigen`) VALUES ('1', 'Escrito');
+INSERT INTO `tpfinal_2024`.`medioorigen` (`idMedioOrigen`, `NombreMedioOrigen`) VALUES ('2', 'Audiovisual');
+INSERT INTO `tpfinal_2024`.`medioorigen` (`idMedioOrigen`, `NombreMedioOrigen`) VALUES ('3', 'Red social');
